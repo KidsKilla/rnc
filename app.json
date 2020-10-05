@@ -1,0 +1,12 @@
+{
+  "name": "RNCarousel",
+  "displayName": "RNCarousel",
+  "expo": {
+    "name": "RNCarousel",
+    "slug": "RNCarousel",
+    "version": "1.0.0",
+    "assetBundlePatterns": [
+      "**/*"
+    ]
+  }
+}
