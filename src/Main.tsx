@@ -1,5 +1,11 @@
 import React from 'react';
-import { StyleSheet, View, Image, ScrollView } from 'react-native';
+import {
+  StyleSheet,
+  View,
+  Image,
+  ScrollView,
+  SafeAreaView,
+} from 'react-native';
 
 import { DISHES } from './data/dishes';
 import { createSubsetsManager } from './util/subsets';
@@ -51,6 +57,7 @@ export const Main = () => {
     const index = subsetsManager.getStartIndexByKey(key);
     ref.current?.animateToPage(index);
   }, []);
+  console.log('🔘 Main', progress, nextIndex, toRGB(transitColor));
   return (
     <View style={styles.outerContainer}>
       <ScrollView contentContainerStyle={styles.contentWrapper}>
@@ -122,8 +129,6 @@ const styles = StyleSheet.create({
     marginTop: 100,
     justifyContent: 'flex-start',
     flex: 1,
-    borderColor: 'red',
-    borderWidth: StyleSheet.hairlineWidth,
   },
   contentWrapper: {
     justifyContent: 'flex-start',

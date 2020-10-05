@@ -12,32 +12,34 @@ export const DotsFade = (props: {
   <View>
     <View
       style={[
-        styles.dots,
+        styles.absoluteCenter,
         {
           opacity: 1 - props.transitionOffset,
         },
       ]}
     >
-      <Dots length={props.length} index={props.index} color={'red'} />
+      <Dots length={props.length} index={props.index} />
     </View>
     {props.transitionOffset > 0 && (
       <View
         style={[
-          styles.dots,
+          styles.absoluteCenter,
           {
             opacity: props.transitionOffset,
           },
         ]}
       >
-        <Dots length={props.nextLength} index={props.nextIndex} color={'red'} />
+        <Dots length={props.nextLength} index={props.nextIndex} />
       </View>
     )}
   </View>
 );
 
 const styles = StyleSheet.create({
-  dots: {
-    justifyContent: 'center',
+  absoluteCenter: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
     alignItems: 'center',
   },
 });

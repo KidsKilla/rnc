@@ -26,7 +26,7 @@ interface ScrollArgs {
   x: number;
   animated?: boolean;
 }
-interface Scrollabe {
+export interface Scrollabe {
   scrollTo: (p: ScrollArgs) => void;
 }
 export const scrollToWithFix = (scrollView: Scrollabe, args: ScrollArgs) => {
@@ -36,9 +36,9 @@ export const scrollToWithFix = (scrollView: Scrollabe, args: ScrollArgs) => {
   });
   // Fix bug
   // https://github.com/phil-r/react-native-looped-carousel/issues/50
-  if (Platform.OS === 'android' && !args.animated) {
-    scrollView.scrollTo({ x: args.x, animated: true });
-  }
+  // if (Platform.OS === 'android' && !args.animated) {
+  //   scrollView.scrollTo({ x: args.x, animated: true });
+  // }
 };
 
 export const useDebounce = (time: number = 1000) => {

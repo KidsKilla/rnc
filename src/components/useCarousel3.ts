@@ -1,6 +1,11 @@
 import React from 'react';
 import { NativeScrollEvent, ScrollView } from 'react-native';
-import { scrollToWithFix, usePrevious, useDebounce } from '../util/react';
+import {
+  scrollToWithFix,
+  usePrevious,
+  useDebounce,
+  Scrollabe,
+} from '../util/react';
 import { clamp } from '../util/lib';
 import {
   createItems,
@@ -13,6 +18,7 @@ export const useCarousel3 = (props: useCarousel3.Props) => {
   const scrollViewRef = React.useRef<ScrollView>(null);
   const isLooped = props.isLooped == null ? true : Boolean(props.isLooped);
   const totalLength = props.totalLength || 1;
+  const requestPlace = React.useRef<number>();
 
   const clampIndex = (n: number) =>
     clamp(n, {
@@ -36,9 +42,10 @@ export const useCarousel3 = (props: useCarousel3.Props) => {
     if (index === state.currentIndex) {
       return;
     }
-    placeAt(vars.zeroPoint);
     props.onChangePage?.(index);
     console.log('🟢 updateCurrentPage <==', `(${index})`);
+    requestPlace.current = vars.zeroPoint;
+    placeAt(vars.zeroPoint);
     updateState({
       currentIndex: index,
       nativeEvent: null,
@@ -69,10 +76,18 @@ export const useCarousel3 = (props: useCarousel3.Props) => {
 
   // Callback: offset change
   const onScroll = React.useCallback((event: rn.ScrollEvent) => {
-    console.log('🔹 onScroll', event.nativeEvent.contentOffset.x);
-    updateState({
-      nativeEvent: event.nativeEvent,
-    });
+    const x = event.nativeEvent.contentOffset.x;
+    if (requestPlace.current == null) {
+      console.log('🔹 onScroll b', x);
+      updateState({
+        nativeEvent: event.nativeEvent,
+      });
+      console.log('🔹 onScroll a', x);
+      return;
+    }
+    console.log('🔳 requestPlace.current', requestPlace.current, x);
+    requestPlace.current = undefined;
+    return;
   }, []);
 
   // Callback: get size
@@ -108,23 +123,22 @@ export const useCarousel3 = (props: useCarousel3.Props) => {
   }, [state.requestedIndex]);
 
   // Effect: scroll
-  const callLater = useDebounce(10);
+  const callLater = useDebounce(50);
   React.useEffect(() => {
     if (!state.nativeEvent) {
       return;
     }
-    props.onScroll?.({
-      currentIndex: state.currentIndex,
-      nextIndex: vars.nextIndex,
-      progress: vars.progress,
-      progressPx: vars.progressPx,
-      nativeEvent: state.nativeEvent,
-    });
     if (vars.isScrollOffBounds) {
-      console.log('e:state.nativeEvent; isScrollOffBounds');
       callLater(() => {
-        console.log('e:state.nativeEvent; callLater');
         updateCurrentPage(vars.nextIndex);
+      });
+    } else {
+      props.onScroll?.({
+        currentIndex: state.currentIndex,
+        nextIndex: vars.nextIndex,
+        progress: vars.progress,
+        progressPx: vars.progressPx,
+        nativeEvent: state.nativeEvent,
       });
     }
   }, [state.nativeEvent]);
@@ -148,9 +162,8 @@ export const useCarousel3 = (props: useCarousel3.Props) => {
     requestedIndex: state.requestedIndex,
   });
 
-  // console.log('render.vars', vars);
-  console.log('render.state', state.counter);
   return {
+    id: state.counter,
     isLooped,
     items,
     width: state.width,
@@ -161,7 +174,6 @@ export const useCarousel3 = (props: useCarousel3.Props) => {
     progressPx: vars.progressPx,
     // method
     animateToPage,
-    // DOM
     onLayout,
     onScroll,
     scrollViewRef,
@@ -171,7 +183,7 @@ export const useCarousel3 = (props: useCarousel3.Props) => {
       isLooped,
       totalLength,
       state,
-      scene: vars,
+      vars,
     },
   };
 };

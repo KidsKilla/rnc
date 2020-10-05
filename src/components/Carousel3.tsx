@@ -1,5 +1,6 @@
 import React from 'react';
 import { Text, ScrollView, View } from 'react-native';
+import Animated from 'react-native-reanimated';
 import { updateRef, usePrevious } from '../util/react';
 import { useCarousel3 } from './useCarousel3';
 
@@ -32,18 +33,17 @@ const renderCarousel3 = (
       state: carouselAPI,
     });
   }
-
   return (
     <View onLayout={carouselAPI.onLayout}>
       <ScrollView
         ref={carouselAPI.scrollViewRef}
         onScroll={carouselAPI.onScroll}
         bounces={!carouselAPI.isLooped}
-        // onScrollAnimationEnd={() => console.log('onScrollAnimationEnd')}
-        // onMomentumScrollEnd={() => console.log('onMomentumScrollEnd')}
-        // onScrollEndDrag={() => console.log('onScrollEndDrag')}
-        // onResponderEnd={() => console.log('onResponderEnd')}
-        // onTouchEnd={() => console.log('onTouchEnd')}
+        onScrollAnimationEnd={() => console.log('onScrollAnimationEnd')}
+        onMomentumScrollEnd={() => console.log('onMomentumScrollEnd')}
+        onScrollEndDrag={() => console.log('onScrollEndDrag')}
+        onResponderEnd={() => console.log('onResponderEnd')}
+        onTouchEnd={() => console.log('onTouchEnd')}
         directionalLockEnabled={true}
         decelerationRate={'fast'}
         horizontal={true}
@@ -75,13 +75,14 @@ const renderCarousel3 = (
                   {item.index}
                 </Text>
                 <Text style={{ fontSize: 10, alignSelf: 'center' }}>
-                  {[-2, -1, 0, 1, 2][i]}
+                  {(i = Math.floor(carouselAPI.items.length))}
                 </Text>
               </>
             )}
           </View>
         ))}
       </ScrollView>
+
       {debug && (
         <Text style={{ borderWidth: 1 }}>
           Debug:

@@ -5,9 +5,9 @@ export type Color = {
 };
 
 export const createColor = (r: number, g: number, b: number): Color => ({
-  r,
-  g,
-  b,
+  r: Math.round(r),
+  g: Math.round(g),
+  b: Math.round(b),
 });
 
 export const toRGB = (color: Color) =>

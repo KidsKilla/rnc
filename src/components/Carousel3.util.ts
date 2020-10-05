@@ -9,6 +9,7 @@ export const getInitialState = (initialIndex: number) => ({
   requestedIndex: null as number | null,
   width: 0,
   height: 0,
+  // requestPlace: null as number | null,
 });
 
 export const getComputable = (
