@@ -1,11 +1,6 @@
 import React from 'react';
 import { NativeScrollEvent, ScrollView } from 'react-native';
-import {
-  scrollToWithFix,
-  usePrevious,
-  useDebounce,
-  Scrollabe,
-} from '../util/react';
+import { usePrevious, useDebounce } from '../util/react';
 import { clamp } from '../util/lib';
 import {
   createItems,
@@ -15,7 +10,6 @@ import {
 } from './Carousel3.util';
 
 export const useCarousel3 = (props: useCarousel3.Props) => {
-  const scrollViewRef = React.useRef<ScrollView>(null);
   const isLooped = props.isLooped == null ? true : Boolean(props.isLooped);
   const totalLength = props.totalLength || 1;
   const requestPlace = React.useRef<number>();
@@ -26,66 +20,44 @@ export const useCarousel3 = (props: useCarousel3.Props) => {
       isLooped,
     });
   const initIndex = clampIndex(props.initialIndex || 0);
-  const [state, replaceState] = React.useState(() =>
+  const [STATE, replaceState] = React.useState(() =>
     getInitialState(initIndex),
   );
-  const vars = getComputable(clampIndex, state);
+  const VARS = getComputable(clampIndex, STATE);
   const updateState = (newValues: Partial<State>) => {
     replaceState((prevState) => ({
       ...prevState,
       ...newValues,
-      counter: state.counter + 1,
+      counter: STATE.counter + 1,
     }));
   };
 
   const updateCurrentPage = (index: number) => {
-    if (index === state.currentIndex) {
+    if (index === STATE.currentIndex) {
       return;
     }
     props.onChangePage?.(index);
-    console.log('🟢 updateCurrentPage <==', `(${index})`);
-    requestPlace.current = vars.zeroPoint;
-    placeAt(vars.zeroPoint);
+    // console.log('🟢 updateCurrentPage <==', `(${index})`);
+    requestPlace.current = VARS.zeroPoint;
     updateState({
       currentIndex: index,
       nativeEvent: null,
       requestedIndex: null,
     });
   };
-  ////////////////////
-  //
-  // scrollTo
-  const animateTo = (offset: number) => {
-    if (scrollViewRef.current) {
-      console.log('🟠 animateTo', offset);
-      scrollToWithFix(scrollViewRef.current, {
-        x: offset,
-        animated: true,
-      });
-    }
-  };
-  const placeAt = (offset: number) => {
-    if (scrollViewRef.current) {
-      console.log('🟡 placeAt', offset);
-      scrollToWithFix(scrollViewRef.current, {
-        x: offset,
-        animated: false,
-      });
-    }
-  };
 
   // Callback: offset change
   const onScroll = React.useCallback((event: rn.ScrollEvent) => {
-    const x = event.nativeEvent.contentOffset.x;
+    // const x = event.nativeEvent.contentOffset.x;
     if (requestPlace.current == null) {
-      console.log('🔹 onScroll b', x);
+      // console.log('🔹 onScroll b', x);
       updateState({
         nativeEvent: event.nativeEvent,
       });
-      console.log('🔹 onScroll a', x);
+      // console.log('🔹 onScroll a', x);
       return;
     }
-    console.log('🔳 requestPlace.current', requestPlace.current, x);
+    // console.log('🔳 requestPlace.current', requestPlace.current, x);
     requestPlace.current = undefined;
     return;
   }, []);
@@ -93,7 +65,7 @@ export const useCarousel3 = (props: useCarousel3.Props) => {
   // Callback: get size
   const onLayout = React.useCallback<rn.OnLayout>((event) => {
     const { width, height } = event.nativeEvent.layout;
-    console.log('🔸 onLayout');
+    // console.log('🔸 onLayout');
     updateState({
       width: width,
       height: height,
@@ -102,98 +74,115 @@ export const useCarousel3 = (props: useCarousel3.Props) => {
 
   // Effect: content change
   React.useEffect(() => {
-    if (state.currentIndex >= totalLength) {
+    if (STATE.currentIndex >= totalLength) {
       updateCurrentPage(totalLength - 1);
     }
   }, [totalLength]);
 
   // Effect: width
   React.useEffect(() => {
-    placeAt(vars.zeroPoint);
-  }, [state.width]);
+    props.scrollTo({
+      x: VARS.zeroPoint,
+      animated: false,
+    });
+  }, [STATE.width]);
 
   // Effect: animateToPage
-  const prevIndex = usePrevious(state.requestedIndex);
+  const prevIndex = usePrevious(STATE.requestedIndex);
   React.useEffect(() => {
-    if (state.requestedIndex == null || prevIndex === state.requestedIndex) {
+    if (STATE.requestedIndex == null || prevIndex === STATE.requestedIndex) {
       return;
     }
-    const multiplier = state.requestedIndex > state.currentIndex ? 1 : -1;
-    animateTo(vars.zeroPoint + state.width * multiplier);
-  }, [state.requestedIndex]);
+    const multiplier = STATE.requestedIndex > STATE.currentIndex ? 1 : -1;
+    props.scrollTo({
+      x: VARS.zeroPoint + STATE.width * multiplier,
+      animated: true,
+    });
+  }, [STATE.requestedIndex]);
+
+  // Effect: reset position
+  React.useLayoutEffect(() => {
+    if (requestPlace.current) {
+      props.scrollTo({
+        x: requestPlace.current,
+        animated: false,
+      });
+    }
+  }, [requestPlace.current]);
 
   // Effect: scroll
   const callLater = useDebounce(50);
   React.useEffect(() => {
-    if (!state.nativeEvent) {
+    if (!STATE.nativeEvent) {
       return;
     }
-    if (vars.isScrollOffBounds) {
+    if (VARS.isScrollOffBounds) {
+      // console.log('☑️ vars.isScrollOffBounds', VARS.isScrollOffBounds);
       callLater(() => {
-        updateCurrentPage(vars.nextIndex);
+        updateCurrentPage(VARS.nextIndex);
       });
     } else {
       props.onScroll?.({
-        currentIndex: state.currentIndex,
-        nextIndex: vars.nextIndex,
-        progress: vars.progress,
-        progressPx: vars.progressPx,
-        nativeEvent: state.nativeEvent,
+        currentIndex: STATE.currentIndex,
+        nextIndex: VARS.nextIndex,
+        progress: VARS.progress,
+        progressPx: VARS.progressPx,
+        nativeEvent: STATE.nativeEvent,
       });
     }
-  }, [state.nativeEvent]);
+  }, [STATE.nativeEvent]);
 
   const animateToPage = React.useCallback(
     (index: number) => {
       const clampedIndex = clampIndex(index);
-      if (state.currentIndex !== clampedIndex) {
+      if (STATE.currentIndex !== clampedIndex) {
         updateState({
           requestedIndex: clampedIndex,
         });
       }
     },
-    [totalLength, isLooped, state.currentIndex],
+    [totalLength, isLooped, STATE.currentIndex],
   );
 
   const items = createItems({
     totalLength,
-    currentIndex: state.currentIndex,
+    currentIndex: STATE.currentIndex,
     isLooped,
-    requestedIndex: state.requestedIndex,
+    requestedIndex: STATE.requestedIndex,
   });
 
   return {
-    id: state.counter,
+    id: STATE.counter,
+    offsetX: requestPlace.current,
     isLooped,
     items,
-    width: state.width,
-    height: state.height,
-    currentIndex: state.currentIndex,
-    nextIndex: vars.nextIndex,
-    progress: vars.progress,
-    progressPx: vars.progressPx,
+    width: STATE.width,
+    height: STATE.height,
+    currentIndex: STATE.currentIndex,
+    nextIndex: VARS.nextIndex,
+    progress: VARS.progress,
+    progressPx: VARS.progressPx,
     // method
     animateToPage,
     onLayout,
     onScroll,
-    scrollViewRef,
     // debug
     debug: {
       items,
       isLooped,
       totalLength,
-      state,
-      vars,
+      state: STATE,
+      vars: VARS,
     },
   };
 };
 
 namespace rn {
-  export type OnLayout = NonNullable<ScrollView['props']['onLayout']>;
-  export type OnScroll = NonNullable<ScrollView['props']['onScroll']>;
   export type ScrollEvent = {
     nativeEvent: NativeScrollEvent;
   };
+  export type OnLayout = NonNullable<ScrollView['props']['onLayout']>;
+  export type OnScroll = (e: rn.ScrollEvent) => void;
 }
 
 export namespace useCarousel3 {
@@ -204,11 +193,13 @@ export namespace useCarousel3 {
     progressPx: number;
     nativeEvent: NativeScrollEvent;
   }
+  export type Item = ReturnType<typeof createItems>[0];
   export type Props = {
     totalLength: number;
     initialIndex?: number;
     isLooped?: boolean;
     onChangePage?: (index: number) => void;
     onScroll?: (event: ScrollEvent) => void;
+    scrollTo: (props: { x: number; animated: boolean }) => void;
   };
 }

@@ -1,8 +1,9 @@
 import React from 'react';
-import { Text, ScrollView, View } from 'react-native';
-import Animated from 'react-native-reanimated';
+import { Text, View, ScrollView, FlatList } from 'react-native';
 import { updateRef, usePrevious } from '../util/react';
 import { useCarousel3 } from './useCarousel3';
+import { scrollToWithFix } from './Carousel3.util';
+// import { FlatList } from 'react-native-gesture-handler';
 
 const renderCarousel3 = (
   props: Carousel3.Props,
@@ -10,12 +11,29 @@ const renderCarousel3 = (
 ) => {
   const debug = false;
   const children = React.Children.toArray(props.children);
+  // const fl = React.useRef<FlatList<useCarousel3.Item>>(null);
+  const sv = React.useRef<ScrollView>(null);
+  const scrollTo: useCarousel3.Props['scrollTo'] = (props) => {
+    if (sv.current) {
+      scrollToWithFix(sv.current, {
+        x: props.x,
+        animated: props.animated,
+      });
+    }
+    // if (fl.current) {
+    //   fl.current.scrollToOffset({
+    //     offset: props.x,
+    //     animated: props.animated,
+    //   });
+    // }
+  };
   const carouselAPI = useCarousel3({
     totalLength: children.length,
     initialIndex: props.currentPage,
     isLooped: props.isLooped,
     onChangePage: props.onChangePage,
     onScroll: props.onScroll,
+    scrollTo,
   });
 
   // On currentPage prop change
@@ -33,17 +51,39 @@ const renderCarousel3 = (
       state: carouselAPI,
     });
   }
+  const idx = carouselAPI.items.map((it) => it.index).join(',');
+  // const keys = carouselAPI.items.map((it) => it.key).join(',');
+
+  const renderItem = (item: typeof carouselAPI.items[0], i: number) => (
+    <View
+      key={item.key}
+      style={{
+        flexDirection: 'column',
+        width: carouselAPI.width,
+        height: carouselAPI.height,
+      }}
+    >
+      {children[item.index]}
+      {debug && (
+        <>
+          <Text style={{ fontSize: 36, alignSelf: 'center' }}>
+            {item.index}
+          </Text>
+          <Text style={{ fontSize: 10, alignSelf: 'center' }}>
+            {i - Math.floor(carouselAPI.items.length)}
+          </Text>
+        </>
+      )}
+    </View>
+  );
+  // console.log('C3', idx, carouselAPI.progress);
   return (
     <View onLayout={carouselAPI.onLayout}>
-      <ScrollView
-        ref={carouselAPI.scrollViewRef}
-        onScroll={carouselAPI.onScroll}
-        bounces={!carouselAPI.isLooped}
-        onScrollAnimationEnd={() => console.log('onScrollAnimationEnd')}
-        onMomentumScrollEnd={() => console.log('onMomentumScrollEnd')}
-        onScrollEndDrag={() => console.log('onScrollEndDrag')}
-        onResponderEnd={() => console.log('onResponderEnd')}
-        onTouchEnd={() => console.log('onTouchEnd')}
+      {/* <FlatList
+        ref={fl}
+        onMomentumScrollEnd={carouselAPI.onScroll}
+        data={carouselAPI.items}
+        renderItem={({ item, index }) => renderItem(item, index)}
         directionalLockEnabled={true}
         decelerationRate={'fast'}
         horizontal={true}
@@ -58,29 +98,29 @@ const renderCarousel3 = (
             width: carouselAPI.width * carouselAPI.items.length,
           },
         ]}
+      /> */}
+
+      <ScrollView
+        ref={sv}
+        // onMomentumScrollEnd={carouselAPI.onScroll}
+        onScroll={carouselAPI.onScroll}
+        bounces={!carouselAPI.isLooped}
+        directionalLockEnabled={true}
+        decelerationRate={'normal'}
+        horizontal={true}
+        pagingEnabled={true}
+        showsHorizontalScrollIndicator={false}
+        scrollEventThrottle={16}
+        style={props.style}
+        contentContainerStyle={[
+          props.contentContainerStyle,
+          {
+            position: 'absolute',
+            width: carouselAPI.width * carouselAPI.items.length,
+          },
+        ]}
       >
-        {carouselAPI.items.map((item, i) => (
-          <View
-            key={item.key}
-            style={{
-              flexDirection: 'column',
-              width: carouselAPI.width,
-              height: carouselAPI.height,
-            }}
-          >
-            {children[item.index]}
-            {debug && (
-              <>
-                <Text style={{ fontSize: 36, alignSelf: 'center' }}>
-                  {item.index}
-                </Text>
-                <Text style={{ fontSize: 10, alignSelf: 'center' }}>
-                  {(i = Math.floor(carouselAPI.items.length))}
-                </Text>
-              </>
-            )}
-          </View>
-        ))}
+        {carouselAPI.items.map(renderItem)}
       </ScrollView>
 
       {debug && (
@@ -88,9 +128,10 @@ const renderCarousel3 = (
           Debug:
           {JSON.stringify(
             {
-              i: carouselAPI.items.map((it) => it.index).join(','),
-              keys: carouselAPI.items.map((it) => it.key).join(','),
-              debug: carouselAPI.debug,
+              p: carouselAPI.progress,
+              px: carouselAPI.progressPx,
+              idx,
+              // debug: carouselAPI.debug,
             },
             null,
             2,

@@ -57,7 +57,7 @@ export const Main = () => {
     const index = subsetsManager.getStartIndexByKey(key);
     ref.current?.animateToPage(index);
   }, []);
-  console.log('🔘 Main', progress, nextIndex, toRGB(transitColor));
+  // console.log('🔘 Main', progress, nextIndex, toRGB(transitColor));
   return (
     <View style={styles.outerContainer}>
       <ScrollView contentContainerStyle={styles.contentWrapper}>

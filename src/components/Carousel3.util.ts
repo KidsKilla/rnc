@@ -1,5 +1,5 @@
 import { clamp } from '../util/lib';
-import { NativeScrollEvent } from 'react-native';
+import { NativeScrollEvent, Platform } from 'react-native';
 
 export type State = ReturnType<typeof getInitialState>;
 export const getInitialState = (initialIndex: number) => ({
@@ -19,8 +19,8 @@ export const getComputable = (
   const zeroPoint = state.width * 2;
   const x = state.nativeEvent?.contentOffset.x;
   const offset = x == null ? zeroPoint : x;
-  const maxOffset = zeroPoint + state.width;
-  const minOffset = zeroPoint - state.width;
+  const maxOffset = zeroPoint + (state.width - 1);
+  const minOffset = zeroPoint - (state.width - 1);
   const isScrollOffBounds = minOffset >= offset || offset >= maxOffset;
 
   const getIndexByOffset = (offset: number) => {
@@ -89,4 +89,23 @@ export const createItems = (params: {
     items[3].key = 'anim+1';
   }
   return items;
+};
+
+interface ScrollArgs {
+  x: number;
+  animated?: boolean;
+}
+export interface Scrollabe {
+  scrollTo: (p: ScrollArgs) => void;
+}
+export const scrollToWithFix = (scrollView: Scrollabe, args: ScrollArgs) => {
+  scrollView.scrollTo({
+    x: args.x,
+    animated: args.animated,
+  });
+  // Fix bug
+  // https://github.com/phil-r/react-native-looped-carousel/issues/50
+  if (Platform.OS === 'android' && !args.animated) {
+    scrollView.scrollTo({ x: args.x, animated: true });
+  }
 };

@@ -1,5 +1,4 @@
 import React from 'react';
-import { Platform, ScrollView } from 'react-native';
 
 type Ref<T = unknown> =
   | ((instance: T | null) => void)
@@ -20,25 +19,6 @@ export const usePrevious = <T>(value: T) => {
     ref.current = value;
   });
   return ref.current;
-};
-
-interface ScrollArgs {
-  x: number;
-  animated?: boolean;
-}
-export interface Scrollabe {
-  scrollTo: (p: ScrollArgs) => void;
-}
-export const scrollToWithFix = (scrollView: Scrollabe, args: ScrollArgs) => {
-  scrollView.scrollTo({
-    x: args.x,
-    animated: args.animated,
-  });
-  // Fix bug
-  // https://github.com/phil-r/react-native-looped-carousel/issues/50
-  // if (Platform.OS === 'android' && !args.animated) {
-  //   scrollView.scrollTo({ x: args.x, animated: true });
-  // }
 };
 
 export const useDebounce = (time: number = 1000) => {
