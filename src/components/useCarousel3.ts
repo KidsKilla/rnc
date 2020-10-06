@@ -83,6 +83,8 @@ export const useCarousel3 = (props: useCarousel3.Props) => {
   React.useEffect(() => {
     props.scrollTo({
       x: VARS.zeroPoint,
+      index: STATE.currentIndex,
+      itemIndex: 2,
       animated: false,
     });
   }, [STATE.width]);
@@ -96,6 +98,8 @@ export const useCarousel3 = (props: useCarousel3.Props) => {
     const multiplier = STATE.requestedIndex > STATE.currentIndex ? 1 : -1;
     props.scrollTo({
       x: VARS.zeroPoint + STATE.width * multiplier,
+      index: clampIndex(STATE.currentIndex + multiplier),
+      itemIndex: 2 + multiplier,
       animated: true,
     });
   }, [STATE.requestedIndex]);
@@ -105,6 +109,8 @@ export const useCarousel3 = (props: useCarousel3.Props) => {
     if (requestPlace.current) {
       props.scrollTo({
         x: requestPlace.current,
+        index: STATE.currentIndex,
+        itemIndex: 2,
         animated: false,
       });
     }
@@ -200,6 +206,11 @@ export namespace useCarousel3 {
     isLooped?: boolean;
     onChangePage?: (index: number) => void;
     onScroll?: (event: ScrollEvent) => void;
-    scrollTo: (props: { x: number; animated: boolean }) => void;
+    scrollTo: (props: {
+      x: number;
+      index: number;
+      itemIndex: number;
+      animated: boolean;
+    }) => void;
   };
 }

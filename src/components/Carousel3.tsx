@@ -11,21 +11,15 @@ const renderCarousel3 = (
 ) => {
   const debug = false;
   const children = React.Children.toArray(props.children);
-  // const fl = React.useRef<FlatList<useCarousel3.Item>>(null);
+  const fl = React.useRef<FlatList<useCarousel3.Item>>(null);
   const sv = React.useRef<ScrollView>(null);
   const scrollTo: useCarousel3.Props['scrollTo'] = (props) => {
-    if (sv.current) {
-      scrollToWithFix(sv.current, {
-        x: props.x,
+    if (fl.current) {
+      fl.current.scrollToIndex({
+        index: props.itemIndex,
         animated: props.animated,
       });
     }
-    // if (fl.current) {
-    //   fl.current.scrollToOffset({
-    //     offset: props.x,
-    //     animated: props.animated,
-    //   });
-    // }
   };
   const carouselAPI = useCarousel3({
     totalLength: children.length,
@@ -79,10 +73,15 @@ const renderCarousel3 = (
   // console.log('C3', idx, carouselAPI.progress);
   return (
     <View onLayout={carouselAPI.onLayout}>
-      {/* <FlatList
+      <FlatList
         ref={fl}
         onMomentumScrollEnd={carouselAPI.onScroll}
         data={carouselAPI.items}
+        getItemLayout={(_, index) => ({
+          index,
+          length: carouselAPI.width,
+          offset: carouselAPI.width * index,
+        })}
         renderItem={({ item, index }) => renderItem(item, index)}
         directionalLockEnabled={true}
         decelerationRate={'fast'}
@@ -98,30 +97,7 @@ const renderCarousel3 = (
             width: carouselAPI.width * carouselAPI.items.length,
           },
         ]}
-      /> */}
-
-      <ScrollView
-        ref={sv}
-        // onMomentumScrollEnd={carouselAPI.onScroll}
-        onScroll={carouselAPI.onScroll}
-        bounces={!carouselAPI.isLooped}
-        directionalLockEnabled={true}
-        decelerationRate={'normal'}
-        horizontal={true}
-        pagingEnabled={true}
-        showsHorizontalScrollIndicator={false}
-        scrollEventThrottle={16}
-        style={props.style}
-        contentContainerStyle={[
-          props.contentContainerStyle,
-          {
-            position: 'absolute',
-            width: carouselAPI.width * carouselAPI.items.length,
-          },
-        ]}
-      >
-        {carouselAPI.items.map(renderItem)}
-      </ScrollView>
+      />
 
       {debug && (
         <Text style={{ borderWidth: 1 }}>
