@@ -150,5 +150,6 @@ const styles = StyleSheet.create({
   },
   item: {
     alignSelf: 'center',
+    flex: 1,
   },
 });

@@ -51,6 +51,15 @@ export const getComputable = (
   };
 };
 
+type Items = ReturnType<typeof createItems>;
+type Item = Items extends (infer T)[] ? T : never;
+
+export const cloneTimes = (n: number, item: Item): Item[] =>
+  new Array(n).fill(null).map((_, i) => ({
+    key: i === 2 ? item.key : `ct${n}${i}`,
+    index: item.index,
+  }));
+
 export const createItems = (params: {
   totalLength: number;
   currentIndex: number;

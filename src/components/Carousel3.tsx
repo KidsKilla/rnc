@@ -9,7 +9,7 @@ const renderCarousel3 = (
   props: Carousel3.Props,
   ref?: React.Ref<Carousel3.API>,
 ) => {
-  const debug = false;
+  const debug = props.debug;
   const children = React.Children.toArray(props.children);
   // const fl = React.useRef<FlatList<useCarousel3.Item>>(null);
   const sv = React.useRef<ScrollView>(null);
@@ -102,6 +102,7 @@ const renderCarousel3 = (
 
       <ScrollView
         ref={sv}
+        onLayout={carouselAPI.onLayout}
         // onMomentumScrollEnd={carouselAPI.onScroll}
         onScroll={carouselAPI.onScroll}
         bounces={!carouselAPI.isLooped}
@@ -111,12 +112,13 @@ const renderCarousel3 = (
         pagingEnabled={true}
         showsHorizontalScrollIndicator={false}
         scrollEventThrottle={16}
-        style={props.style}
+        style={[props.style]}
         contentContainerStyle={[
           props.contentContainerStyle,
           {
             position: 'absolute',
             width: carouselAPI.width * carouselAPI.items.length,
+            height: carouselAPI.height,
           },
         ]}
       >
@@ -130,6 +132,7 @@ const renderCarousel3 = (
             {
               p: carouselAPI.progress,
               px: carouselAPI.progressPx,
+              w: carouselAPI.width,
               idx,
               // debug: carouselAPI.debug,
             },

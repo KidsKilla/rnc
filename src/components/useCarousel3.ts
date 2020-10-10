@@ -4,6 +4,7 @@ import { usePrevious, useDebounce } from '../util/react';
 import { clamp } from '../util/lib';
 import {
   createItems,
+  cloneTimes,
   getComputable,
   getInitialState,
   State,
@@ -12,7 +13,7 @@ import {
 export const useCarousel3 = (props: useCarousel3.Props) => {
   const isLooped = props.isLooped == null ? true : Boolean(props.isLooped);
   const totalLength = props.totalLength || 1;
-  const requestPlace = React.useRef<number>();
+  const requestPosition = React.useRef<number>();
 
   const clampIndex = (n: number) =>
     clamp(n, {
@@ -38,7 +39,7 @@ export const useCarousel3 = (props: useCarousel3.Props) => {
     }
     props.onChangePage?.(index);
     // console.log('🟢 updateCurrentPage <==', `(${index})`);
-    requestPlace.current = VARS.zeroPoint;
+    requestPosition.current = VARS.zeroPoint;
     updateState({
       currentIndex: index,
       nativeEvent: null,
@@ -49,7 +50,7 @@ export const useCarousel3 = (props: useCarousel3.Props) => {
   // Callback: offset change
   const onScroll = React.useCallback((event: rn.ScrollEvent) => {
     // const x = event.nativeEvent.contentOffset.x;
-    if (requestPlace.current == null) {
+    if (requestPosition.current == null) {
       // console.log('🔹 onScroll b', x);
       updateState({
         nativeEvent: event.nativeEvent,
@@ -58,7 +59,7 @@ export const useCarousel3 = (props: useCarousel3.Props) => {
       return;
     }
     // console.log('🔳 requestPlace.current', requestPlace.current, x);
-    requestPlace.current = undefined;
+    requestPosition.current = undefined;
     return;
   }, []);
 
@@ -102,13 +103,13 @@ export const useCarousel3 = (props: useCarousel3.Props) => {
 
   // Effect: reset position
   React.useLayoutEffect(() => {
-    if (requestPlace.current) {
+    if (requestPosition.current) {
       props.scrollTo({
-        x: requestPlace.current,
+        x: requestPosition.current,
         animated: false,
       });
     }
-  }, [requestPlace.current]);
+  }, [requestPosition.current]);
 
   // Effect: scroll
   const callLater = useDebounce(50);
@@ -153,9 +154,9 @@ export const useCarousel3 = (props: useCarousel3.Props) => {
 
   return {
     id: STATE.counter,
-    offsetX: requestPlace.current,
+    offsetX: requestPosition.current,
     isLooped,
-    items,
+    items: requestPosition.current == null ? items : cloneTimes(5, items[2]),
     width: STATE.width,
     height: STATE.height,
     currentIndex: STATE.currentIndex,
